@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sub Split</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#eef2f1;--surface:#fff;--ink:#12261f;--muted:#5c6f68;--line:#d5dedb;--accent:#0f6b52;--accent-ink:#fff;--good:#0f6b52;--good-bg:#d8f1e7;--bad:#a63a1f;--bad-bg:#fbe3da;--seat:#e3ebe8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1815;--surface:#16241f;--ink:#e6f1ed;--muted:#94aaa2;--line:#27403a;--accent:#4fd1a5;--accent-ink:#06231a;--good:#6fe0b8;--good-bg:#12392d;--bad:#ff9d80;--bad-bg:#3f1f15;--seat:#243a33}}
+:root[data-theme="dark"]{--bg:#0e1815;--surface:#16241f;--ink:#e6f1ed;--muted:#94aaa2;--line:#27403a;--accent:#4fd1a5;--accent-ink:#06231a;--good:#6fe0b8;--good-bg:#12392d;--bad:#ff9d80;--bad-bg:#3f1f15;--seat:#243a33}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1000px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:clamp(2.2rem,6vw,3.6rem);line-height:1;margin:0 0 6px;font-weight:800;letter-spacing:-.03em}
+h2{font-size:1.15rem;margin:0 0 12px;font-weight:600}
+.sub{color:var(--muted);margin:0 0 24px;max-width:52ch}
+.totals{display:flex;flex-wrap:wrap;gap:28px;padding:16px 0;border-block:1px solid var(--line);margin-bottom:28px}
+.totals b{display:block;font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+.totals span{color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.name{font-weight:800;font-size:1.2rem;letter-spacing:-.01em}
+.price{color:var(--muted);font-size:.9rem}
+.badge{font-size:.8rem;font-weight:600;padding:3px 10px;border-radius:99px}
+.badge.Good{background:var(--good-bg);color:var(--good)}
+.badge.Bad{background:var(--bad-bg);color:var(--bad)}
+.share{font-size:2rem;font-weight:800;letter-spacing:-.03em;margin:14px 0 2px}
+.share small{font-size:.9rem;font-weight:400;color:var(--muted);letter-spacing:0}
+.seats{display:flex;gap:5px;margin:12px 0}
+.seat{flex:1;height:8px;border-radius:4px;background:var(--seat)}
+.seat.on{background:var(--accent)}
+.members{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-height:30px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--seat);border-radius:99px;padding:3px 6px 3px 12px;font-size:.88rem}
+.chip button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:0 4px}
+.row{display:flex;gap:8px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;min-width:0;width:100%}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+button.btn{font:inherit;font-weight:600;border:0;border-radius:9px;padding:9px 16px;background:var(--accent);color:var(--accent-ink);cursor:pointer;white-space:nowrap}
+button.ghost{background:none;color:var(--muted);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{margin-top:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .full{grid-column:1/-1}
+.verdict{margin-top:14px;padding:14px;border-radius:10px;font-weight:600}
+.verdict.Good{background:var(--good-bg);color:var(--good)}
+.verdict.Bad{background:var(--bad-bg);color:var(--bad)}
+.verdict p{margin:4px 0 0;font-weight:400;color:var(--ink);font-size:.92rem}
+.empty{color:var(--muted);padding:30px;border:1px dashed var(--line);border-radius:14px;text-align:center}
+.theme{float:right}
+</style>
+</head>
+<body>
+<main>
+  <button class="btn ghost theme" id="theme" aria-label="Toggle theme">Theme</button>
+  <h1>Sub Split</h1>
+  <p class="sub">Share family subscription plans, see what each person pays, and check whether a plan is worth joining.</p>
+  <div class="totals" id="totals"></div>
+  <div class="grid" id="plans"></div>
+
+  <div class="panel">
+    <section class="card">
+      <h2>Add a plan</h2>
+      <div class="form">
+        <div class="full"><label for="n">Service name</label><input id="n" placeholder="e.g. Disney+ Hotstar"></div>
+        <div><label for="p">Plan price per month (₹)</label><input id="p" type="number" min="1" placeholder="299"></div>
+        <div><label for="i">Solo price per month (₹)</label><input id="i" type="number" min="1" placeholder="149"></div>
+        <div><label for="s">Seats on the plan</label><input id="s" type="number" min="1" max="12" placeholder="5"></div>
+        <div><label for="o">Your name</label><input id="o" placeholder="You"></div>
+        <div class="full"><button class="btn" id="add">Add plan</button> <span id="addmsg" class="price" role="status"></span></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Value check</h2>
+      <div class="form">
+        <div><label for="vp">Plan price (₹)</label><input id="vp" type="number" min="1" value="299"></div>
+        <div><label for="vi">Solo price (₹)</label><input id="vi" type="number" min="1" value="149"></div>
+        <div><label for="vs">Seats</label><input id="vs" type="number" min="1" value="5"></div>
+        <div><label for="vm">Members joined</label><input id="vm" type="number" min="1" value="3"></div>
+      </div>
+      <div id="verdict"></div>
+    </section>
+  </div>
+</main>
+<script>
+const KEY="subsplit:v1";
+const seed=[
+ {id:1,name:"Netflix Premium",price:649,solo:649,seats:4,members:["You","Asha","Ravi"]},
+ {id:2,name:"Spotify Family",price:179,solo:119,seats:6,members:["You","Asha","Ravi","Meera"]},
+ {id:3,name:"YouTube Premium Family",price:299,solo:149,seats:5,members:["You","Kabir"]}
+];
+let plans=seed;
+try{const r=localStorage.getItem(KEY);if(r)plans=JSON.parse(r)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(plans))}catch(e){}};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const inr=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+
+// Client-side value rule: a weighted score of savings vs solo price and how full the plan is.
+// (The original project used a trained model; this is a simple stand-in for the UI.)
+function classify(price,solo,seats,members){
+  const share=price/Math.max(members,1);
+  const savings=1-share/solo;
+  const fill=Math.min(members/seats,1);
+  const score=0.75*savings+0.25*fill;
+  return{share,savings,fill,score,label:score>=0.3?"Good":"Bad"};
+}
+
+function render(){
+  const mine=plans.reduce((a,p)=>a+p.price/Math.max(p.members.length,1),0);
+  const solo=plans.reduce((a,p)=>a+p.solo,0);
+  $("totals").innerHTML=`<div><b>${plans.length}</b><span>plans</span></div><div><b>${inr(mine)}</b><span>you pay per month</span></div><div><b>${inr(Math.max(solo-mine,0))}</b><span>saved per month vs solo</span></div>`;
+  if(!plans.length){$("plans").innerHTML='<div class="empty">No plans yet. Add one below to start splitting.</div>';return}
+  $("plans").innerHTML=plans.map(p=>{
+    const c=classify(p.price,p.solo,p.seats,p.members.length);
+    const seatsHtml=Array.from({length:p.seats},(_,i)=>`<div class="seat ${i<p.members.length?"on":""}"></div>`).join("");
+    const chips=p.members.map((m,i)=>`<span class="chip">${esc(m)}<button data-act="rm" data-id="${p.id}" data-i="${i}" aria-label="Remove ${esc(m)}">×</button></span>`).join("");
+    const full=p.members.length>=p.seats;
+    return `<article class="card">
+      <div class="top"><div><div class="name">${esc(p.name)}</div><div class="price">${inr(p.price)}/month · solo ${inr(p.solo)}</div></div><span class="badge ${c.label}">${c.label} value</span></div>
+      <div class="share">${inr(c.share)} <small>each, ${p.members.length} of ${p.seats} seats</small></div>
+      <div class="seats" aria-hidden="true">${seatsHtml}</div>
+      <div class="members">${chips||'<span class="price">No members yet</span>'}</div>
+      <div class="row"><input data-in="${p.id}" placeholder="${full?"Plan is full":"Member name"}" ${full?"disabled":""} aria-label="Member name for ${esc(p.name)}"><button class="btn" data-act="join" data-id="${p.id}" ${full?"disabled":""}>Add member</button></div>
+      <div style="margin-top:10px"><button class="btn ghost" data-act="del" data-id="${p.id}">Delete plan</button></div>
+    </article>`}).join("");
+}
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button[data-act]");if(!b)return;
+  const id=+b.dataset.id,p=plans.find(x=>x.id===id);
+  if(b.dataset.act==="del"){plans=plans.filter(x=>x.id!==id)}
+  if(b.dataset.act==="rm"){p.members.splice(+b.dataset.i,1)}
+  if(b.dataset.act==="join"){
+    const inp=document.querySelector(`[data-in="${id}"]`),v=inp.value.trim();
+    if(!v){inp.focus();return}
+    if(p.members.length<p.seats)p.members.push(v.slice(0,24));
+  }
+  save();render();
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&e.target.dataset.in){document.querySelector(`button[data-act="join"][data-id="${e.target.dataset.in}"]`).click()}
+});
+
+$("add").onclick=()=>{
+  const name=$("n").value.trim(),price=+$("p").value,solo=+$("i").value,seats=Math.min(+$("s").value,12),owner=$("o").value.trim()||"You";
+  const msg=$("addmsg");
+  if(!name||!(price>0)||!(solo>0)||!(seats>0)){msg.textContent="Enter a name, both prices and the number of seats.";return}
+  plans.push({id:Date.now(),name:name.slice(0,40),price,solo,seats,members:[owner.slice(0,24)]});
+  ["n","p","i","s","o"].forEach(k=>$(k).value="");
+  msg.textContent="Plan added.";save();render();
+};
+
+function check(){
+  const price=+$("vp").value,solo=+$("vi").value,seats=+$("vs").value,m=+$("vm").value;
+  if(!(price>0&&solo>0&&seats>0&&m>0)){$("verdict").innerHTML="";return}
+  const mm=Math.min(m,seats),c=classify(price,solo,seats,mm),full=classify(price,solo,seats,seats);
+  const pct=Math.round(c.savings*100);
+  $("verdict").innerHTML=`<div class="verdict ${c.label}">${c.label} value: ${inr(c.share)} per person
+    <p>${pct>=0?`That is ${pct}% less than paying solo.`:`That is ${-pct}% more than paying solo.`} With every seat filled it would be ${inr(full.share)} each.</p></div>`;
+}
+["vp","vi","vs","vm"].forEach(k=>$(k).addEventListener("input",check));
+
+$("theme").onclick=()=>{
+  const r=document.documentElement,dark=matchMedia("(prefers-color-scheme: dark)").matches;
+  const cur=r.dataset.theme||(dark?"dark":"light");
+  r.dataset.theme=cur==="dark"?"light":"dark";
+};
+render();check();
+</script>
+</body>
+</html>
